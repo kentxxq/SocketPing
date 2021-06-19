@@ -13,21 +13,8 @@ namespace SocketPing
             Parser.Default.ParseArguments<Options>(args)
                           .WithParsed<Options>(o =>
                           {
-                              IPEndPoint endpoint = null!;
+                              var endpoint = ParseUri(o.Url);
                               bool result;
-                              try
-                              {
-                                  var host = o.Url.Split(":")[0];
-                                  var ip = Dns.GetHostAddresses(host)[0];
-                                  var port = o.Url.Split(":")[1];
-                                  endpoint = new IPEndPoint(ip, int.Parse(port));
-                              }
-                              catch (Exception)
-                              {
-                                  Console.WriteLine("地址解析失败");
-                                  Environment.Exit(1);
-                              }
-
 
                               if (o.RetryTimes == 0)
                               {
@@ -54,6 +41,22 @@ namespace SocketPing
                               }
 
                           });
+        }
+
+        static IPEndPoint ParseUri(string url)
+        {
+            try
+            {
+                var host = url.Split(":")[0];
+                var ip = Dns.GetHostAddresses(host)[0];
+                var port = url.Split(":")[1];
+                return new IPEndPoint(ip, int.Parse(port));
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("地址解析错误");
+            }
+
         }
 
         static bool TestConnect(IPEndPoint iPEndPoint, int timeout)
